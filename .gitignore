@@ -1,0 +1,27 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# macOS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Large / generated media (keep gallery/ — needed for submission)
+input.mp4
+output_annotated.mp4
+output_*.mp4
+*_test.mp4
+
+# Local scratch from development
+_probe/
+
+# DeepFace / TensorFlow caches (if downloaded inside project)
+.deepface/
+.keras/
+*.h5
