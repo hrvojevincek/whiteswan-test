@@ -11,7 +11,7 @@ Accuracy does not need to be perfect; reasonable performance is sufficient for t
 ## Prerequisites
 
 - Python 3.10+ recommended
-- `ffmpeg` is not required (OpenCV writes MP4)
+- `ffmpeg` on your PATH (used after annotation to re-encode output as H.264 so the MP4 plays in Cursor, QuickTime, and browsers)
 
 ## Setup
 
@@ -89,10 +89,11 @@ python annotate_video.py \
 If output labels flicker or mislabel characters, tune `--distance-threshold` first, then `--iou-threshold` and `--vote-window`.
 
 On CPU, full-video runs are slow (~2+ s/frame). Use `--detect-every 3` (or `5`) to run RetinaFace less often — much faster; boxes/labels update every N frames instead of every frame.
+- `--no-reencode`: skip the ffmpeg H.264 step (output may not preview in Cursor).
 
 ## Output
 
-The script writes `output_annotated.mp4` containing bounding boxes and the voted character label per face track.
+The script writes `output_annotated.mp4` containing bounding boxes and the voted character label per face track. By default it is re-encoded to **H.264** (video only, no audio) for broad playback.
 
 ## How identity matching works (high level)
 

@@ -1,5 +1,7 @@
 import argparse
 import os
+import shutil
+import subprocess
 from collections import Counter, deque
 from dataclasses import dataclass
 from typing import Deque, Dict, List, Optional, Tuple
@@ -205,6 +207,44 @@ def _best_of_character_match(
     return CHARACTERS[best_slug], best_dist
 
 
+def _reencode_to_h264(video_path: str) -> None:
+    """Re-encode OpenCV mp4v output to H.264 for IDE/browser/QuickTime playback."""
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        print(
+            "[WARN] ffmpeg not found; output uses mp4v and may not preview in Cursor. "
+            "Install ffmpeg or convert manually."
+        )
+        return
+
+    tmp_path = f"{video_path}.h264.tmp.mp4"
+    cmd = [
+        ffmpeg,
+        "-y",
+        "-loglevel",
+        "error",
+        "-i",
+        video_path,
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+        "-an",
+        tmp_path,
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"[WARN] ffmpeg re-encode failed; leaving mp4v output. {result.stderr.strip()}")
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        return
+
+    os.replace(tmp_path, video_path)
+    print(f"[INFO] Re-encoded to H.264: {video_path}")
+
+
 def annotate_video(
     input_video: str,
     output_video: str,
@@ -216,6 +256,7 @@ def annotate_video(
     max_frames: Optional[int] = None,
     fourcc: str = "mp4v",
     detect_every: int = 1,
+    reencode_h264: bool = True,
 ) -> None:
     if not os.path.exists(input_video):
         raise FileNotFoundError(f"Input video not found: {input_video}")
@@ -381,6 +422,8 @@ def annotate_video(
     cap.release()
     out.release()
     print(f"[INFO] Done. Wrote: {output_video}")
+    if reencode_h264:
+        _reencode_to_h264(output_video)
 
 
 def main() -> None:
@@ -401,6 +444,11 @@ def main() -> None:
         default=1,
         help="Run RetinaFace every N frames (default 1). Use 3–5 on CPU for ~3–5x speedup; boxes update less often.",
     )
+    parser.add_argument(
+        "--no-reencode",
+        action="store_true",
+        help="Skip ffmpeg H.264 re-encode (output may not preview in Cursor).",
+    )
 
     args = parser.parse_args()
 
@@ -415,6 +463,7 @@ def main() -> None:
         max_frames=args.max_frames,
         fourcc=args.fourcc,
         detect_every=args.detect_every,
+        reencode_h264=not args.no_reencode,
     )
 
 
