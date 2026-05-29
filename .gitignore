@@ -14,8 +14,6 @@ __pycache__/
 
 # Large / generated media (keep gallery/ — needed for submission)
 input.mp4
-output_annotated.mp4
-output_*.mp4
 *_test.mp4
 
 # Local scratch from development
